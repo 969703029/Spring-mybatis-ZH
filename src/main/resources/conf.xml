@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	
+	<!-- 引入db.properties文件 -->
+	<properties resource="db.properties"></properties>
+	<!-- 配置log4j日志文件。输出执行时数据信息 -->
+	<settings>
+		<setting name="logImpl" value="LOG4J"/>
+	</settings>
+	<!-- 设置类的别名 -->
+	<typeAliases>		
+		<!-- 默认全路径的名字，用类的名字来代替 -->
+		<package name="beans"/>
+	</typeAliases>
+  <environments default="development">
+  	<!-- 配置数据库环境，每一种数据库是一个environment -->
+    <environment id="development">
+      <!--配置事务管理器，用jdbc的事务来提交 -->
+      <transactionManager type="JDBC"/>
+      <!-- 数据源，规定使用数据库连接池 -->
+      <dataSource type="UNPOOLED">
+      	<!-- value属性设置的内容来自于db.properties文件 -->
+        <property name="driver" value="${driver}"/>
+        <property name="url" value="${url}"/>
+        <property name="username" value="${username}"/>
+        <property name="password" value="${password}"/>
+      </dataSource>
+    </environment>
+  </environments>
+  <!-- 加载映射文件 -->
+  <mappers>
+  	<package name="org/TestSpringIoc/Test87/stumag/mapper"></package>
+  	<package name="org/TestSpringIoc/Test87/classmag/mapper"></package>
+  </mappers>
+</configuration>

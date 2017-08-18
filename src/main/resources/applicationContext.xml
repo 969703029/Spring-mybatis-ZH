@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-3.2.xsd
+http://www.springframework.org/schema/aop 
+http://www.springframework.org/schema/aop/spring-aop.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!--1.打开自动扫描功能 -->
+	<context:component-scan base-package="org.TestSpringIoc" />
+	<!--2.配置dataSource连接池 -->
+	<!--destroy-method="close"固定写法，表示在Spring容器销毁时，连接池需要调用close()来关闭连接池的所有连接 -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost:3306/kaoshi1?useUnicode=true&amp;characterEncoding=UTF-8&amp;allowMultiQueries=true"></property>
+		<property name="username" value="root"></property>
+		<property name="password" value="zhu5201314."></property>
+
+
+		<!--配置连接池的属性 -->
+		<property name="initialSize" value="15"></property><!--连接池的初始化连接数 -->
+		<property name="maxActive" value="50"></property><!--连接池的上限连接数，包括：池内和池外 -->
+		<property name="minIdle" value="5"></property><!--最小的空闲数，也就是池外的连接数 -->
+		<property name="maxIdle" value="15"></property><!--最大的空闲数 -->
+		<property name="defaultAutoCommit" value="false"></property><!--设置自动提交为假 -->
+		<property name="removeAbandonedTimeout" value="10"></property><!--超过10S没处理完，表示该连接超时了 -->
+		<property name="removeAbandoned" value="true"></property><!--是否回收超时连接 -->
+	</bean>
+
+	<!--3.配置SessionFactory，主要是给我们提供数据库连接的会话对象 -->
+	<bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="typeAliasesPackage" value="org.TestSpringIoc.Test87.beans"></property><!-- 给类取别名 -->
+	</bean>
+	<!-- 第四步配置MapperScanner, 自动扫描系统中的所有的SQL映射文件或者是接口 -->
+	<bean id="mapperScanner" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="
+		org.TestSpringIoc.Test87.stumag.mapper;
+ 		org.TestSpringIoc.Test87.classmag.mapper">
+ 		</property>
+		
+		<!-- 将SQL映射文件或者是接口与SQLSession进行关联 -->
+		<property name="sqlSessionFactoryBeanName" value="sessionFactory"></property>
+	</bean>
+
+	<!-- 第五步配置事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	<!-- spring框架提供的编程式事务方式 -->
+<!-- 	<tx:annotation-driven transaction-manager="transactionManager" /> -->
+	
+	<!-- spring框架提供的声明式事务方式 -->
+	<tx:advice id="txadvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*" read-only="true"/>
+			<tx:method name="add*" read-only="false" isolation="REPEATABLE_READ" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="delete*" read-only="false" isolation="REPEATABLE_READ" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<aop:config>
+		<aop:pointcut id="ServiceOperation" expression="execution(* org.TestSpringIoc.Test87.*mag.service.impl.*ServiceImpl.*(..))" />
+		<aop:advisor advice-ref="txadvice" pointcut-ref="ServiceOperation"/>
+	</aop:config>
+	
+	
+	
+	
+	<!--开启动态代理 -->
+<!-- 	<aop:aspectj-autoproxy/> -->
+	
+
+</beans>
